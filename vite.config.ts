@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { resolve } from 'node:path'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -12,6 +13,16 @@ export default defineConfig(({ mode }) => {
       port: 5173
     },
     define: {},
-    plugins: [vue()]
+    plugins: [vue()],
+    resolve: {
+      alias: {
+        // 使用 path.resolve 创建绝对路径别名
+        '@': resolve(__dirname, 'src'),
+        '~': resolve(__dirname, 'public')
+      }
+    },
+    build: {
+      outDir: 'dist'
+    }
   }
 })
