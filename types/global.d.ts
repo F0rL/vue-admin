@@ -4,4 +4,6 @@ interface ViteEnv {
   readonly VITE_API_BASE_URL: string
 }
 
-interface ImportMetaEnv extends ViteEnv {}
+interface ImportMetaEnv extends ViteEnv {
+  __: unknown
+}
