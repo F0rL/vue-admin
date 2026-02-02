@@ -40,13 +40,18 @@ export default [
   {
     files: ['**/*.{ts,mts,cts,vue}'],
     rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
-      ],
+      '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'off', // Vue 中常用 !，可关闭
       '@typescript-eslint/consistent-type-imports': 'warn', // 推荐 type import
+      '@typescript-eslint/no-unused-expressions': [
+        'error',
+        {
+          allowShortCircuit: true, // 允许 a && b() 这类短路表达式
+          allowTernary: true, // 允许 a ? b : c 三元表达式
+        },
+      ],
+      '@typescript-eslint/ban-ts-comment': 'off',
     },
   },
 

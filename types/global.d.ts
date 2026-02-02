@@ -7,3 +7,5 @@ interface ViteEnv {
 interface ImportMetaEnv extends ViteEnv {
   __: unknown
 }
+
+declare type Recordable<T = any> = Record<string, T>

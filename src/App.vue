@@ -1,9 +1,9 @@
-<script setup lang="ts">
-const ar = [12]
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <div class="text-blue-600 bg-red-600">12</div>
+  <div>
+    <router-view></router-view>
+  </div>
 </template>
 
 <style scoped></style>

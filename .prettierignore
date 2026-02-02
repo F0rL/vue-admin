@@ -4,8 +4,6 @@ dev-dist
 .output.js
 node_modules
 .nvmrc
-coverage
-CODEOWNERS
 .nitro
 .output
 
