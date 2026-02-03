@@ -2,7 +2,7 @@ import type { AppRouteRecordRaw } from '@/router/types'
 
 import { LAYOUT } from '@/router/constant'
 
-const setting: AppRouteRecordRaw = {
+const system: AppRouteRecordRaw = {
   path: '/sys',
   name: 'System',
   component: LAYOUT,
@@ -13,7 +13,7 @@ const setting: AppRouteRecordRaw = {
   children: [
     {
       path: 'menu',
-      name: 'SettingMenu',
+      name: 'SystemMenu',
       component: () => import('@/views/sys/menu/index.vue'),
       meta: {
         title: '菜单管理',
@@ -21,7 +21,7 @@ const setting: AppRouteRecordRaw = {
     },
     {
       path: 'role',
-      name: 'SettingRole',
+      name: 'SystemRole',
       component: () => import('@/views/sys/role/index.vue'),
       meta: {
         title: '角色管理',
@@ -30,4 +30,4 @@ const setting: AppRouteRecordRaw = {
   ],
 }
 
-export default setting
+export default system

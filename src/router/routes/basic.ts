@@ -33,12 +33,31 @@ export const RootRoute: AppRouteRecordRaw = {
 }
 
 export const Login: AppRouteRecordRaw = {
-  path: '/login',
-  name: 'Login',
-  component: () => import('@/views/login/index.vue'),
+  path: '/auth',
+  name: 'Auth',
+  redirect: '/auth/login',
+  component: () => import('@/views/auth/index.vue'),
   meta: {
     title: '登录',
   },
+  children: [
+    {
+      path: 'login',
+      name: 'AuthLogin',
+      component: () => import('@/views/auth/login.vue'),
+      meta: {
+        title: '登录',
+      },
+    },
+    {
+      path: 'qrcode-login',
+      name: 'AuthQrcodeLogin',
+      component: () => import('@/views/auth/qrcode-login.vue'),
+      meta: {
+        title: '登录',
+      },
+    },
+  ],
 }
 
 // 获取所有路由模块
