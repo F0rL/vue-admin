@@ -7,17 +7,22 @@
     "dev": "vite",
     "build:test": "vite build --mode test",
     "preview:test": "vite preview --mode test",
-    "build": "vue-tsc -b && vite build",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "build": "pnpm typecheck && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .js,.ts,.vue",
     "lint:fix": "eslint . --ext .js,.ts,.vue --fix",
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "@tailwindcss/vite": "^4.1.18",
+    "element-plus": "^2.13.7",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "tailwindcss": "^4.1.18",
+    "unplugin-auto-import": "^21.0.0",
+    "unplugin-vue-components": "^32.0.0",
     "vue": "^3.5.24",
     "vue-router": "^4.6.4"
   },

@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 
 :root {
+  color: #0f172a;
+  background: #f8fafc;
 }
 
 html,
@@ -11,10 +13,13 @@ body,
 }
 
 body {
+  margin: 0;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
     sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
 }
 
 #app {
