@@ -1,15 +1,32 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
 import { Lock, Message, User } from '@element-plus/icons-vue'
+import { feedback } from '@/utils/feedback'
+import { useUserStore } from '@/store/modules/user'
+
+interface LoginForm {
+  username: string
+  password: string
+}
+
+interface LoginResult {
+  token: string
+  userInfo: {
+    id: string
+    name: string
+    avatar: string
+  }
+}
 
 const router = useRouter()
+const userStore = useUserStore()
 const appName = import.meta.env.VITE_APP_NAME || 'Admin App'
 
 const formRef = useTemplateRef<FormInstance>('formRef')
 const submitting = ref(false)
 const rememberMe = ref(true)
 
-const form = reactive({
+const form = reactive<LoginForm>({
   username: '',
   password: '',
 })
@@ -25,18 +42,61 @@ const rules = reactive<FormRules>({
   ],
 })
 
+/**
+ * 模拟登录请求。
+ * 后续接入真实接口时，只需要将这里替换为 `src/api/` 中的登录 API 调用即可。
+ */
+async function loginByPassword(payload: LoginForm): Promise<LoginResult> {
+  await new Promise(resolve => {
+    window.setTimeout(resolve, 900)
+  })
+
+  if (payload.username !== 'admin' || payload.password !== '123456') {
+    throw new Error('账号或密码错误，演示账号：admin / 123456')
+  }
+
+  return {
+    token: 'mock-token-admin',
+    userInfo: {
+      id: '1',
+      name: payload.username,
+      avatar: '',
+    },
+  }
+}
+
 async function handleSubmit() {
   if (!formRef.value) return
 
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
-  submitting.value = true
+  try {
+    submitting.value = true
 
-  window.setTimeout(() => {
+    const result = await feedback.withLoading(
+      () => loginByPassword({ ...form }),
+      {
+        text: '正在登录，请稍候...',
+        minDuration: 500,
+      }
+    )
+
+    userStore.token = result.token
+    userStore.userInfo = result.userInfo
+
+    feedback.notifySuccess('登录成功', `欢迎回来，${result.userInfo.name}`, {
+      duration: 2500,
+    })
+
+    await router.push('/sys/menu')
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : '登录失败，请稍后重试'
+    feedback.error(message)
+  } finally {
     submitting.value = false
-    ElMessage.success('登录表单校验通过，后续可在这里接入真实接口')
-  }, 700)
+  }
 }
 
 function goToQrcode() {
@@ -145,7 +205,7 @@ function goToQrcode() {
         class="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-slate-300/90 bg-white text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700"
         @click="goToQrcode"
       >
-        <el-icon><Monitor /></el-icon>
+        <el-icon></el-icon>
         企业微信扫码
       </button>
     </div>
