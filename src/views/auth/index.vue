@@ -15,11 +15,6 @@
     <section
       class="relative z-10 hidden h-full flex-col justify-center px-12 py-10 lg:flex xl:px-16"
     >
-      <div
-        class="inline-flex w-fit items-center rounded-full border border-blue-200/70 bg-white/80 px-4 py-2 text-sm font-semibold text-blue-700 backdrop-blur"
-      >
-        Vue 3 Admin
-      </div>
       <h1
         class="mt-7 max-w-[12ch] text-4xl font-bold leading-tight tracking-[-0.03em] text-slate-900 xl:text-5xl"
       >

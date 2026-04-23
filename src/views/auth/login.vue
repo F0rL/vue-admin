@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { Lock, Message, Monitor, User } from '@element-plus/icons-vue'
+import type { FormInstance, FormRules } from 'element-plus'
+import { Lock, Message, User } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const appName = import.meta.env.VITE_APP_NAME || 'Admin App'
 
-const formRef = useTemplateRef('formRef')
+const formRef = useTemplateRef<FormInstance>('formRef')
 const submitting = ref(false)
 const rememberMe = ref(true)
 
 const form = reactive({
-  username: 'admin',
-  password: '123456',
+  username: '',
+  password: '',
 })
 
-const rules = {
+const rules = reactive<FormRules>({
   username: [
     { required: true, message: '请输入账号', trigger: 'blur' },
     { min: 3, message: '账号长度不能少于 3 位', trigger: 'blur' },
@@ -22,7 +23,7 @@ const rules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于 6 位', trigger: 'blur' },
   ],
-}
+})
 
 async function handleSubmit() {
   if (!formRef.value) return
@@ -48,13 +49,6 @@ function goToQrcode() {
     class="rounded-[28px] border border-slate-200/80 bg-white/88 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur sm:p-7"
   >
     <div class="flex items-center gap-3.5">
-      <div
-        class="inline-flex h-11 w-11 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#2563eb_0%,#0f766e_100%)] text-white shadow-[0_14px_28px_rgba(37,99,235,0.25)]"
-      >
-        <el-icon :size="18">
-          <Monitor />
-        </el-icon>
-      </div>
       <div>
         <h2
           class="text-[24px] leading-tight font-bold text-slate-900 sm:text-[26px]"
@@ -116,7 +110,6 @@ function goToQrcode() {
           </template>
         </el-input>
       </el-form-item>
-
       <div class="mb-5 flex items-center justify-between gap-3">
         <el-checkbox v-model="rememberMe">记住我</el-checkbox>
         <button

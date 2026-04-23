@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, Monitor } from '@element-plus/icons-vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -22,11 +22,6 @@ function backToLogin() {
         <el-icon><ArrowLeft /></el-icon>
         返回账号登录
       </button>
-      <div
-        class="mx-auto inline-flex h-[50px] w-[50px] items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#2563eb_0%,#0f766e_100%)] text-white shadow-[0_16px_32px_rgba(37,99,235,0.22)]"
-      >
-        <el-icon :size="20"><Monitor /></el-icon>
-      </div>
       <h2 class="mt-[18px] text-[24px] font-bold text-slate-900 sm:text-[26px]">
         扫码登录
       </h2>
