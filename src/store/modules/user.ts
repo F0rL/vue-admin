@@ -14,7 +14,10 @@ export const useUserStore = defineStore(
     const token = ref<string>('')
 
     // 在 Setup Stores 中，您需要创建自己的 $reset() 方法重置
-    function $reset() {}
+    function $reset() {
+      token.value = ''
+      userInfo.value = undefined
+    }
     return {
       userInfo,
       token,

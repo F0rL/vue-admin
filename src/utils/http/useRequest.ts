@@ -1,5 +1,8 @@
-import { onBeforeUnmount, ref } from 'vue'
-import type { Ref } from 'vue'
+import { onBeforeUnmount, ref, shallowRef } from 'vue'
+import type { GenericAbortSignal } from 'axios'
+import { router, resetRouter } from '@/router'
+import { store } from '@/store'
+import { useUserStore } from '@/store/modules/user'
 import { HttpRequest } from './index'
 import type {
   HttpMethodConfig,
@@ -10,17 +13,91 @@ import type {
 /**
  * 全局单例请求实例。
  */
-export const http = new HttpRequest()
+export const http = new HttpRequest({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  timeout: 15000,
+  headers: {
+    Accept: 'application/json, text/plain, */*',
+    'Content-Type': 'application/json',
+  },
+  defaultRequestConfig: {
+    withToken: true,
+    showErrorMessage: true,
+    cancelDuplicate: true,
+    retry: false,
+  },
+  tokenProvider: () => {
+    const userStore = useUserStore(store)
+    return userStore.token
+  },
+  clearAuthState: () => {
+    const userStore = useUserStore(store)
+    userStore.$reset()
+    resetRouter()
+  },
+  onUnauthorized: async () => {
+    const currentPath = router.currentRoute.value.fullPath
+
+    if (currentPath !== '/auth/login') {
+      await router.push({
+        path: '/auth/login',
+        query: {
+          redirect: currentPath,
+        },
+      })
+    }
+  },
+})
+let requestScopeSeed = 0
+
+function mergeSignals(
+  signals: Array<AbortSignal | GenericAbortSignal | undefined>
+): AbortSignal | undefined {
+  const availableSignals = signals.filter(
+    (signal): signal is AbortSignal | GenericAbortSignal => signal !== undefined
+  )
+
+  if (availableSignals.length === 0) {
+    return undefined
+  }
+
+  if (availableSignals.length === 1) {
+    const [signal] = availableSignals
+    return signal instanceof AbortSignal ? signal : undefined
+  }
+
+  const controller = new AbortController()
+
+  const abort = () => {
+    controller.abort()
+  }
+
+  for (const signal of availableSignals) {
+    if (signal.aborted) {
+      abort()
+      break
+    }
+
+    signal.addEventListener?.('abort', abort, { once: true })
+  }
+
+  return controller.signal
+}
 
 /**
  * 在组件作用域内使用请求实例，并在卸载时自动取消。
  */
 export function useRequest() {
   const controllers = new Set<AbortController>()
+  const dedupeScope = `scope_${Date.now()}_${++requestScopeSeed}`
 
-  onBeforeUnmount(() => {
+  function cancelAllControllers() {
     controllers.forEach(controller => controller.abort())
     controllers.clear()
+  }
+
+  onBeforeUnmount(() => {
+    cancelAllControllers()
   })
 
   function withSignal<T>(
@@ -32,7 +109,8 @@ export function useRequest() {
 
     return executor({
       ...config,
-      signal: controller.signal,
+      dedupeScope: config.dedupeScope ?? dedupeScope,
+      signal: mergeSignals([config.signal, controller.signal]),
     }).finally(() => {
       controllers.delete(controller)
     })
@@ -108,8 +186,7 @@ export function useRequest() {
     delete: del,
     request,
     cancelAll() {
-      controllers.forEach(controller => controller.abort())
-      controllers.clear()
+      cancelAllControllers()
     },
   }
 }
@@ -124,29 +201,38 @@ export function useGet<T>(
 ): UseRequestState<T> & { execute: () => Promise<T> } {
   const { get, cancelAll } = useRequest()
   const loading = ref(false)
-  const data = ref<T | null>(null)
-  const error = ref<Error | null>(null)
+  const data = shallowRef<T | null>(null)
+  const error = shallowRef<Error | null>(null)
+  let currentRequestId = 0
 
   async function execute() {
+    const requestId = ++currentRequestId
     loading.value = true
     error.value = null
 
     try {
       const result = await get<T>(url, params, config)
-      data.value = result
+      if (requestId === currentRequestId) {
+        data.value = result
+      }
       return result
     } catch (err) {
-      error.value = err instanceof Error ? err : new Error('请求失败')
-      throw error.value
+      const nextError = err instanceof Error ? err : new Error('请求失败')
+      if (requestId === currentRequestId) {
+        error.value = nextError
+      }
+      throw nextError
     } finally {
-      loading.value = false
+      if (requestId === currentRequestId) {
+        loading.value = false
+      }
     }
   }
 
   return {
-    loading: loading as Ref<boolean>,
-    data: data as Ref<T | null>,
-    error: error as Ref<Error | null>,
+    loading,
+    data,
+    error,
     execute,
     cancelAll,
   }

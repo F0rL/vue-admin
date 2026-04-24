@@ -4,20 +4,23 @@ import { router, resetRouter } from '@/router'
 import { store } from '@/store'
 import { useUserStore } from '@/store/modules/user'
 import { feedback } from '@/utils/feedback'
-import type {
-  ApiResponse,
-  HttpAxiosResponse,
-  HttpMethodConfig,
-  HttpRequestConfig,
-  RetryOptions,
-  UploadPayload,
-  UploadRequestConfig,
+import {
+  HttpBusinessError,
+  type ApiResponse,
+  type HttpAxiosResponse,
+  type HttpHeadersInput,
+  type HttpMethodConfig,
+  type HttpRequestConfig,
+  type HttpRequestOptions,
+  type RetryOptions,
+  type UploadPayload,
+  type UploadRequestConfig,
 } from './types'
 
 const DEFAULT_SUCCESS_CODE = 200
 const DEFAULT_RETRY_DELAY = 300
 const LOGIN_PATH = '/auth/login'
-const TOKEN_STORAGE_KEYS = ['token', 'Authorization', 'access_token']
+const IDEMPOTENT_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE'])
 
 function sleep(duration: number): Promise<void> {
   return new Promise(resolve => {
@@ -29,32 +32,80 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Object.prototype.toString.call(value) === '[object Object]'
 }
 
-function safeStringify(value: unknown): string {
-  if (value === null || value === undefined) return ''
+function normalizeRequestValue(value: unknown): unknown {
+  if (value === undefined) {
+    return '__undefined__'
+  }
 
-  if (typeof value === 'string') return value
+  if (value === null) {
+    return null
+  }
+
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString()
+  }
+
+  if (value instanceof File) {
+    return {
+      name: value.name,
+      size: value.size,
+      type: value.type,
+      lastModified: value.lastModified,
+    }
+  }
+
+  if (value instanceof Blob) {
+    return {
+      size: value.size,
+      type: value.type,
+    }
+  }
 
   if (value instanceof FormData) {
-    return JSON.stringify(
-      Array.from(value.entries()).map(([key, item]) => [
-        key,
-        item instanceof File ? item.name : String(item),
-      ])
-    )
+    return Array.from(value.entries()).map(([key, item]) => [
+      key,
+      normalizeRequestValue(item),
+    ])
   }
 
-  if (!isPlainObject(value) && !Array.isArray(value)) {
-    return String(value)
+  if (Array.isArray(value)) {
+    return value.map(item => normalizeRequestValue(item))
   }
 
-  const sorted = Object.keys(value)
-    .sort()
-    .reduce<Record<string, unknown>>((result, key) => {
-      result[key] = (value as Record<string, unknown>)[key]
-      return result
-    }, {})
+  if (isPlainObject(value)) {
+    return Object.keys(value)
+      .sort()
+      .reduce<Record<string, unknown>>((result, key) => {
+        result[key] = normalizeRequestValue(value[key])
+        return result
+      }, {})
+  }
 
-  return JSON.stringify(sorted)
+  return String(value)
+}
+
+function safeStringify(value: unknown): string {
+  return JSON.stringify(normalizeRequestValue(value))
+}
+
+function getRequestMethod(config: HttpRequestConfig): string {
+  return (config.method ?? 'get').toUpperCase()
+}
+
+function canRetryRequest(config: HttpRequestConfig, retry: RetryOptions): boolean {
+  if (retry.allowNonIdempotent) {
+    return true
+  }
+
+  return IDEMPOTENT_METHODS.has(getRequestMethod(config))
 }
 
 function createRequestKey(config: HttpRequestConfig): string {
@@ -62,8 +113,9 @@ function createRequestKey(config: HttpRequestConfig): string {
     return config.requestKey
   }
 
-  const method = (config.method ?? 'get').toUpperCase()
+  const method = getRequestMethod(config)
   return [
+    config.dedupeScope ?? 'global',
     method,
     config.url ?? '',
     safeStringify(config.params),
@@ -80,10 +132,15 @@ function isAbortError(error: unknown): boolean {
 
 function shouldRetry(
   error: AxiosError<ApiResponse<unknown>>,
+  config: HttpRequestConfig,
   retry: RetryOptions | false | undefined,
   attempt: number
 ): boolean {
   if (!retry || attempt >= retry.count || isAbortError(error)) {
+    return false
+  }
+
+  if (!canRetryRequest(config, retry)) {
     return false
   }
 
@@ -149,11 +206,27 @@ export class HttpRequest {
 
   private readonly loadingManager = new LoadingManager()
 
-  constructor(config?: HttpRequestConfig) {
+  private readonly options: HttpRequestOptions
+
+  constructor(config: HttpRequestOptions = {}) {
+    const {
+      defaultRequestConfig,
+      tokenProvider,
+      clearAuthState,
+      onUnauthorized,
+      ...axiosConfig
+    } = config
+
+    this.options = {
+      defaultRequestConfig,
+      tokenProvider,
+      clearAuthState,
+      onUnauthorized,
+    }
     this.instance = axios.create({
       baseURL: import.meta.env.VITE_API_BASE_URL,
       timeout: 15000,
-      ...config,
+      ...axiosConfig,
     })
 
     this.setupInterceptors()
@@ -281,10 +354,6 @@ export class HttpRequest {
 
     return this.post<T, FormData>(url, formData, {
       ...config,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        ...(config.headers ?? {}),
-      },
     })
   }
 
@@ -352,9 +421,9 @@ export class HttpRequest {
       const axiosError = error as AxiosError<ApiResponse<unknown>>
       const retry = config.retry
 
-      if (!retry || !shouldRetry(axiosError, retry, attempt)) {
+      if (!retry || !shouldRetry(axiosError, config, retry, attempt)) {
         if (!isAbortError(axiosError)) {
-          this.handleHttpError(axiosError)
+          await this.handleHttpError(axiosError)
         }
         throw error
       }
@@ -366,6 +435,7 @@ export class HttpRequest {
 
   private handleRequest(config: HttpRequestConfig): InternalAxiosRequestConfig {
     const nextConfig = {
+      ...(this.options.defaultRequestConfig ?? {}),
       withToken: true,
       showErrorMessage: true,
       cancelDuplicate: true,
@@ -403,13 +473,14 @@ export class HttpRequest {
 
   private mergeHeaders(config: HttpRequestConfig): AxiosHeaders {
     const headers = new AxiosHeaders()
+    const rawHeaders = config.headers as HttpHeadersInput | AxiosHeaders | undefined
 
-    if (config.headers instanceof AxiosHeaders) {
-      config.headers.forEach((value: AxiosHeaderValue, key: string) => {
+    if (rawHeaders instanceof AxiosHeaders) {
+      rawHeaders.forEach((value: AxiosHeaderValue, key: string) => {
         headers.set(key, value)
       })
-    } else if (config.headers) {
-      Object.entries(config.headers).forEach(([key, value]) => {
+    } else if (rawHeaders) {
+      Object.entries(rawHeaders).forEach(([key, value]) => {
         if (value !== undefined) {
           headers.set(key, value as AxiosHeaderValue)
         }
@@ -426,20 +497,12 @@ export class HttpRequest {
   }
 
   private getToken(): string {
+    if (this.options.tokenProvider) {
+      return this.options.tokenProvider()
+    }
+
     const userStore = useUserStore(store)
-
-    if (userStore.token) {
-      return userStore.token
-    }
-
-    for (const key of TOKEN_STORAGE_KEYS) {
-      const token = window.localStorage.getItem(key)
-      if (token) {
-        return token.replace(/^Bearer\s+/i, '')
-      }
-    }
-
-    return ''
+    return userStore.token
   }
 
   private handleBusinessError<T>(response: HttpAxiosResponse<T>) {
@@ -450,21 +513,29 @@ export class HttpRequest {
       return
     }
 
-    if (config.showErrorMessage !== false && data.message) {
+    if (this.shouldShowBusinessErrorMessage(config) && data.message) {
       feedback.error(data.message)
     }
 
-    throw new Error(data.message || '请求失败')
+    throw new HttpBusinessError(response)
   }
 
-  private handleHttpError(error: AxiosError<ApiResponse<unknown>>) {
+  private async handleHttpError(error: AxiosError<ApiResponse<unknown>>) {
+    const config = error.config as HttpRequestConfig | undefined
     const status = error.response?.status
     const message =
       error.response?.data?.message || error.message || '网络异常，请稍后重试'
+    const shouldShowMessage = this.shouldShowHttpErrorMessage(config)
 
     if (status === 401) {
       this.clearAuthState()
-      feedback.error('登录状态已失效，请重新登录')
+      if (shouldShowMessage) {
+        feedback.error('登录状态已失效，请重新登录')
+      }
+      if (this.options.onUnauthorized) {
+        await this.options.onUnauthorized(error)
+        return
+      }
       if (router.currentRoute.value.fullPath !== LOGIN_PATH) {
         void router.push({
           path: LOGIN_PATH,
@@ -477,38 +548,39 @@ export class HttpRequest {
     }
 
     if (status === 403) {
-      feedback.warning(message || '暂无权限访问该资源')
+      if (shouldShowMessage) {
+        feedback.warning(message || '暂无权限访问该资源')
+      }
       return
     }
 
     if (status === 500 || status === 502) {
-      feedback.error(message || '服务异常，请稍后重试')
+      if (shouldShowMessage) {
+        feedback.error(message || '服务异常，请稍后重试')
+      }
       return
     }
 
     if (!status) {
-      feedback.error('网络连接异常，请检查网络后重试')
+      if (shouldShowMessage) {
+        feedback.error('网络连接异常，请检查网络后重试')
+      }
       return
     }
 
-    feedback.error(message)
+    if (shouldShowMessage) {
+      feedback.error(message)
+    }
   }
 
   private clearAuthState() {
-    const userStore = useUserStore(store)
-
-    try {
-      userStore.$reset()
-    } catch {
-      userStore.token = ''
-      userStore.userInfo = undefined
+    if (this.options.clearAuthState) {
+      this.options.clearAuthState()
+      return
     }
 
-    userStore.token = ''
-    userStore.userInfo = undefined
-    TOKEN_STORAGE_KEYS.forEach(key => {
-      window.localStorage.removeItem(key)
-    })
+    const userStore = useUserStore(store)
+    userStore.$reset()
 
     resetRouter()
   }
@@ -521,5 +593,17 @@ export class HttpRequest {
   private async closeLoading(config?: HttpRequestConfig) {
     if (!config?.showLoading) return
     await this.loadingManager.close()
+  }
+
+  private shouldShowBusinessErrorMessage(config?: HttpRequestConfig) {
+    return config?.showErrorMessage !== false
+  }
+
+  private shouldShowHttpErrorMessage(config?: HttpRequestConfig) {
+    if (config?.showHttpErrorMessage !== undefined) {
+      return config.showHttpErrorMessage
+    }
+
+    return config?.showErrorMessage !== false
   }
 }
