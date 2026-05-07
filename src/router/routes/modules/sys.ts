@@ -8,7 +8,7 @@ const system: AppRouteRecordRaw = {
   component: LAYOUT,
   redirect: '/sys/menu',
   meta: {
-    title: '设置',
+    title: '系统管理',
   },
   children: [
     {

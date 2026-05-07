@@ -74,6 +74,13 @@ function getAsyncRoutes() {
   return r
 }
 
+export const WHITE_NAME_LIST = [
+  'AuthLogin',
+  'AuthQrcodeLogin',
+  'Page_Not_Found',
+  'Root',
+]
+
 export const asyncRoutes = getAsyncRoutes()
 
 export const basicRoutes = [Login, PAGE_NOT_FOUND_ROUTE]

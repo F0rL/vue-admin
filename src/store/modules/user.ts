@@ -1,30 +1,173 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { asyncRoutes } from '@/router/routes/basic'
+import type { AppRouteRecordRaw } from '@/router/types'
+import { filterRoutesByMenus, getFirstValidPath } from '@/router/utils'
 
-interface userInfo {
+// 菜单树结构
+export interface MenuTree {
+  path: string
+  name: string
+  title: string
+  icon?: string
+  children?: MenuTree[]
+}
+
+// 用户信息
+export interface UserInfo {
   id: string
   name: string
   avatar: string
+  menus?: MenuTree[]
 }
 
 export const useUserStore = defineStore(
   'user',
   () => {
-    const userInfo = ref<userInfo>()
+    const userInfo = ref<UserInfo | undefined>()
     const token = ref<string>('')
+    const permissions = ref<string[]>([])
+    const menuTree = ref<MenuTree[]>([])
+    const isRouteAdded = ref(false)
 
-    // 在 Setup Stores 中，您需要创建自己的 $reset() 方法重置
+    // 设置 Token
+    function setToken(t: string) {
+      token.value = t
+    }
+
+    // 设置用户信息
+    function setUserInfo(info: UserInfo) {
+      userInfo.value = info
+    }
+
+    // 设置菜单树
+    function setMenuTree(menus: MenuTree[]) {
+      menuTree.value = menus
+    }
+
+    // 设置权限
+    function setPermissions(perms: string[]) {
+      permissions.value = perms
+    }
+
+    // 登录
+    async function login(username: string, password: string) {
+      // 验证账号密码
+      if (username !== 'admin' || password !== '123456') {
+        throw new Error('账号或密码错误，演示账号：admin / 123456')
+      }
+
+      // 模拟登录 API 调用
+      await new Promise(resolve => {
+        window.setTimeout(resolve, 500)
+      })
+
+      // 模拟后端返回的菜单数据
+      const mockUserInfo: UserInfo = {
+        id: '1',
+        name: username,
+        avatar: '',
+      }
+
+      const mockToken = 'mock-token-' + Date.now()
+
+      await fetchMenuTree()
+
+      setToken(mockToken)
+      setUserInfo(mockUserInfo)
+      setPermissions(['admin'])
+
+      return { userInfo: mockUserInfo, token: mockToken }
+    }
+
+    // 模拟后端返回的菜单树数据
+    async function fetchMenuTree(): Promise<MenuTree[]> {
+      // 模拟 API 调用
+      await new Promise(resolve => {
+        window.setTimeout(resolve, 500)
+      })
+      const mockMenuTree: MenuTree[] = [
+        {
+          path: '/dashboard/index',
+          name: 'DashboardIndex',
+          title: '仪表盘',
+          icon: 'trendCharts',
+        },
+        {
+          path: '/sys',
+          name: 'System',
+          title: '系统管理',
+          icon: 'system',
+          children: [
+            {
+              path: 'menu',
+              name: 'SystemMenu',
+              title: '菜单管理',
+              icon: 'menu',
+            },
+            {
+              path: 'role',
+              name: 'SystemRole',
+              title: '角色管理',
+              icon: 'menu',
+            },
+          ],
+        },
+      ]
+      setMenuTree(mockMenuTree)
+      return mockMenuTree
+    }
+
+    // 获取过滤后的路由
+    function getFilteredRoutes(): AppRouteRecordRaw[] {
+      // 如果没有菜单树，返回所有动态路由
+      if (!menuTree.value.length) {
+        return asyncRoutes
+      }
+      return filterRoutesByMenus(menuTree.value, asyncRoutes)
+    }
+
+    // 获取第一个有效路由路径
+    function getFirstRoutePath(): string | null {
+      const routes = getFilteredRoutes()
+      return getFirstValidPath(routes)
+    }
+
+    // 重置状态
     function $reset() {
       token.value = ''
       userInfo.value = undefined
+      permissions.value = []
+      menuTree.value = []
+      isRouteAdded.value = false
     }
+
+    // 退出登录
+    function logout() {
+      $reset()
+    }
+
     return {
       userInfo,
       token,
+      permissions,
+      menuTree,
+      isRouteAdded,
+      login,
+      logout,
+      fetchMenuTree,
+      setToken,
+      setUserInfo,
+      setMenuTree,
+      setPermissions,
+      getFilteredRoutes,
+      getFirstRoutePath,
       $reset,
     }
   },
   {
-    persist: [],
+    persist: {
+      pick: ['token', 'userInfo', 'permissions', 'isRouteAdded'],
+    },
   }
 )

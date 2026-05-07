@@ -4,9 +4,13 @@ import App from './App.vue'
 import { setupFeedback } from '@/plugins/feedback'
 import { setupRouter } from '@/router'
 import { setupStore } from '@/store'
+import { CommonIcon } from '@/components/CommonIcon'
 
 async function bootstrap() {
   const app = createApp(App)
+
+  // 全局注册 CommonIcon 组件
+  app.component('CommonIcon', CommonIcon)
 
   // 配置 store
   setupStore(app)

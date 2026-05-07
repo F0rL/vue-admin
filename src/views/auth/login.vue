@@ -9,15 +9,6 @@ interface LoginForm {
   password: string
 }
 
-interface LoginResult {
-  token: string
-  userInfo: {
-    id: string
-    name: string
-    avatar: string
-  }
-}
-
 const router = useRouter()
 const userStore = useUserStore()
 const appName = import.meta.env.VITE_APP_NAME || 'Admin App'
@@ -27,8 +18,8 @@ const submitting = ref(false)
 const rememberMe = ref(true)
 
 const form = reactive<LoginForm>({
-  username: '',
-  password: '',
+  username: 'admin',
+  password: '123456',
 })
 
 const rules = reactive<FormRules>({
@@ -42,29 +33,6 @@ const rules = reactive<FormRules>({
   ],
 })
 
-/**
- * 模拟登录请求。
- * 后续接入真实接口时，只需要将这里替换为 `src/api/` 中的登录 API 调用即可。
- */
-async function loginByPassword(payload: LoginForm): Promise<LoginResult> {
-  await new Promise(resolve => {
-    window.setTimeout(resolve, 900)
-  })
-
-  if (payload.username !== 'admin' || payload.password !== '123456') {
-    throw new Error('账号或密码错误，演示账号：admin / 123456')
-  }
-
-  return {
-    token: 'mock-token-admin',
-    userInfo: {
-      id: '1',
-      name: payload.username,
-      avatar: '',
-    },
-  }
-}
-
 async function handleSubmit() {
   if (!formRef.value) return
 
@@ -74,22 +42,21 @@ async function handleSubmit() {
   try {
     submitting.value = true
 
-    const result = await feedback.withLoading(
-      () => loginByPassword({ ...form }),
+    await feedback.withLoading(
+      () => userStore.login(form.username, form.password),
       {
         text: '正在登录，请稍候...',
         minDuration: 500,
       }
     )
 
-    userStore.token = result.token
-    userStore.userInfo = result.userInfo
-
-    feedback.notifySuccess('登录成功', `欢迎回来，${result.userInfo.name}`, {
+    feedback.notifySuccess('登录成功', `欢迎回来，${form.username}`, {
       duration: 2500,
     })
 
-    await router.push('/sys/menu')
+    // 自动跳转到第一个有效路由
+    const redirectPath = userStore.getFirstRoutePath() || '/dashboard'
+    await router.push(redirectPath)
   } catch (error) {
     const message =
       error instanceof Error ? error.message : '登录失败，请稍后重试'

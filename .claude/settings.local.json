@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(pnpm run *)",
+      "Bash(curl -s http://localhost:5003/pc/)",
+      "Skill(update-config)"
+    ]
+  }
+}
