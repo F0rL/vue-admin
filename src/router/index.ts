@@ -6,6 +6,15 @@ import { basicRoutes } from './routes/basic'
 import { useUserStore } from '@/store/modules/user'
 import { WHITE_NAME_LIST } from './routes/basic'
 
+function getRemovableRouteNames(): string[] {
+  return router
+    .getRoutes()
+    .map(route => route.name)
+    .filter(
+      name => name && !WHITE_NAME_LIST.includes(name as string)
+    ) as string[]
+}
+
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: basicRoutes as unknown as RouteRecordRaw[],
@@ -15,19 +24,10 @@ export const router = createRouter({
 
 // 重置路由到基础路由
 export function resetRouter() {
-  // 获取所有需要删除的路由名称
-  const routeNames = router
-    .getRoutes()
-    .map(r => r.name)
-    .filter(
-      name => name && !WHITE_NAME_LIST.includes(name as string)
-    ) as string[]
-
-  // 删除动态添加的路由
-  routeNames.forEach(name => {
+  getRemovableRouteNames().forEach(name => {
     router.hasRoute(name) && router.removeRoute(name)
   })
-  // 重置用户状态
+
   const userStore = useUserStore()
   userStore.isRouteAdded = false
 }
@@ -50,9 +50,8 @@ export function addAsyncRoutes(): boolean {
     const routeName = route.name
     if (!routeName) return
 
-    // 避免重复添加
     if (!router.hasRoute(routeName)) {
-      router.addRoute(routeName, route as unknown as RouteRecordRaw)
+      router.addRoute(route as unknown as RouteRecordRaw)
     }
   })
 
@@ -99,14 +98,8 @@ router.beforeEach(async (to, _from, next) => {
         // 获取目标路由
         const redirectPath = getRedirectPath()
 
-        // 如果目标路径是根路径或当前路径没有匹配到组件，需要重新导航
-        if (to.path === '/' || to.matched.length === 0) {
-          next({ path: redirectPath, replace: true })
-          return
-        }
-
-        // 已有匹配路由，重新加载
-        next({ ...to, replace: true })
+        // 强制跳转到目标路由，而不是使用 to 对象
+        next({ path: redirectPath, replace: true })
         return
       } else {
         // 没有可用的路由
@@ -114,7 +107,6 @@ router.beforeEach(async (to, _from, next) => {
         return
       }
     }
-
     next()
     return
   }
@@ -131,10 +123,15 @@ router.beforeEach(async (to, _from, next) => {
 })
 
 // 退出登录后清理路由
-export function logoutAndReset() {
-  resetRouter()
+export async function logoutAndReset() {
   const userStore = useUserStore()
+
   userStore.logout()
+  resetRouter()
+
+  if (router.currentRoute.value.path !== '/auth/login') {
+    await router.replace('/auth/login')
+  }
 }
 
 export function setupRouter(app: App<Element>) {

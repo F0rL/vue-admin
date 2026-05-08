@@ -167,7 +167,7 @@ export const useUserStore = defineStore(
   },
   {
     persist: {
-      pick: ['token', 'userInfo', 'permissions', 'isRouteAdded'],
+      pick: ['token', 'userInfo', 'permissions'],
     },
   }
 )

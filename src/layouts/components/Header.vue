@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAppStore } from '@/store/modules/app'
 import { useUserStore } from '@/store/modules/user'
 import { logoutAndReset } from '@/router'
@@ -13,7 +13,6 @@ import {
 } from '@element-plus/icons-vue'
 
 const route = useRoute()
-const router = useRouter()
 const appStore = useAppStore()
 const userStore = useUserStore()
 
@@ -32,9 +31,7 @@ function handleToggleSidebar() {
 }
 
 async function handleLogout() {
-  logoutAndReset()
-  await nextTick()
-  router.replace('/auth/login')
+  await logoutAndReset()
 }
 </script>
 

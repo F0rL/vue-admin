@@ -15,12 +15,7 @@ const appStore = useAppStore()
 const isCollapse = computed(() => !appStore.sidebarOpened)
 
 function handleMenuClick(item: MenuItem) {
-  console.log(item)
   router.push(item.path)
-}
-
-function isActive(path: string): boolean {
-  return route.path === path || route.path.startsWith(path + '/')
 }
 </script>
 

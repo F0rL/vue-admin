@@ -10,6 +10,7 @@ interface LoginForm {
 }
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const appName = import.meta.env.VITE_APP_NAME || 'Admin App'
 
@@ -54,8 +55,10 @@ async function handleSubmit() {
       duration: 2500,
     })
 
-    // 自动跳转到第一个有效路由
-    const redirectPath = userStore.getFirstRoutePath() || '/dashboard'
+    const redirectPath =
+      typeof route.query.redirect === 'string' && route.query.redirect
+        ? route.query.redirect
+        : userStore.getFirstRoutePath() || '/dashboard/index'
     await router.push(redirectPath)
   } catch (error) {
     const message =
