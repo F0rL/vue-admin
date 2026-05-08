@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { MenuItem } from './components/types'
+import type { IconName } from '@/components/CommonIcon/types'
 
 export function generateMenu(routes: RouteRecordRaw[]): MenuItem[] {
   const menuList: MenuItem[] = []
@@ -11,7 +12,7 @@ export function generateMenu(routes: RouteRecordRaw[]): MenuItem[] {
       path: route.path,
       name: route.name as string,
       title: (route.meta?.title as string) || '',
-      icon: route.meta?.icon as string | undefined,
+      icon: (route.meta?.icon as IconName) || undefined,
     }
 
     if (route.children?.length) {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import * as elementPlusIcons from '@element-plus/icons-vue'
+import type { IconName } from '../types'
+import { ICON_NAME_LIST } from '../types'
 
 interface Props {
-  icon: string
+  icon: IconName
   size?: number | string
 }
 
@@ -14,8 +15,7 @@ const props = withDefaults(defineProps<Props>(), {
 const iconComponent = computed(() => {
   const name = props.icon
   if (!name) return undefined
-  const key = name.charAt(0).toUpperCase() + name.slice(1)
-  return (elementPlusIcons as any)[key] || (elementPlusIcons as any)[name]
+  return (elementPlusIcons as Record<string, Component>)[name.slice(3)]
 })
 </script>
 

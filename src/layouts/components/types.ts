@@ -1,8 +1,10 @@
+import type { IconName } from '@/components/CommonIcon/types'
+
 export interface MenuItem {
   path: string
   name: string
   title: string
-  icon?: string
+  icon?: IconName
   children?: MenuItem[]
 }
 

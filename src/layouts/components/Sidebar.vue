@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAppStore } from '@/store/modules/app'
+import { CommonIcon } from '@/components/CommonIcon'
 import type { MenuItem } from './types'
 
 defineProps<{

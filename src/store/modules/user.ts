@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { asyncRoutes } from '@/router/routes/basic'
 import type { AppRouteRecordRaw } from '@/router/types'
+import type { IconName } from '@/components/CommonIcon/types'
 import { filterRoutesByMenus, getFirstValidPath } from '@/router/utils'
 
 // 菜单树结构
@@ -9,7 +10,7 @@ export interface MenuTree {
   path: string
   name: string
   title: string
-  icon?: string
+  icon?: IconName
   children?: MenuTree[]
 }
 
@@ -91,25 +92,25 @@ export const useUserStore = defineStore(
           path: '/dashboard/index',
           name: 'DashboardIndex',
           title: '仪表盘',
-          icon: 'trendCharts',
+          icon: 'el-TrendCharts',
         },
         {
           path: '/sys',
           name: 'System',
           title: '系统管理',
-          icon: 'system',
+          icon: 'el-Setting',
           children: [
             {
               path: 'menu',
               name: 'SystemMenu',
               title: '菜单管理',
-              icon: 'menu',
+              icon: 'el-Menu',
             },
             {
               path: 'role',
               name: 'SystemRole',
               title: '角色管理',
-              icon: 'menu',
+              icon: 'el-User',
             },
           ],
         },
