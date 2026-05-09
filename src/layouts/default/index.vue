@@ -5,15 +5,16 @@ import { useUserStore } from '@/store/modules/user'
 import Logo from '../components/Logo.vue'
 import Sidebar from '../components/Sidebar.vue'
 import Header from '../components/Header.vue'
-import type { MenuItem } from '../components/types'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
 
-const isCollapse = computed(() => !appStore.sidebarOpened)
+const sidebarWidthClass = computed(() => {
+  if (!appStore.sidebarVisible) return 'w-0 overflow-hidden'
+  return appStore.sidebarIconOnly ? 'w-16' : 'w-56'
+})
 
-// 从 userStore 获取菜单树
-const menuList = computed<MenuItem[]>(() => {
+const menuList = computed(() => {
   const menus = userStore.menuTree
   if (!menus?.length) return []
   return menus.map(menu => ({
@@ -35,8 +36,10 @@ const menuList = computed<MenuItem[]>(() => {
   <div class="h-screen w-screen flex bg-gray-100">
     <!-- 侧边栏 -->
     <aside
-      class="h-full flex flex-col bg-white border-r border-gray-200 transition-all duration-300"
-      :class="isCollapse ? 'w-16' : 'w-56'"
+      :class="[
+        'h-full flex flex-col bg-white border-r border-gray-200 transition-all duration-300',
+        sidebarWidthClass,
+      ]"
     >
       <Logo />
       <Sidebar :menu-list="menuList" />

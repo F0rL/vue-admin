@@ -7,7 +7,3 @@ export interface MenuItem {
   icon?: IconName
   children?: MenuItem[]
 }
-
-export interface MenuProps {
-  menuList: MenuItem[]
-}

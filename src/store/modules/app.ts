@@ -4,20 +4,32 @@ import { ref } from 'vue'
 export const useAppStore = defineStore(
   'app',
   () => {
-    const sidebarOpened = ref(true)
+    const sidebarVisible = ref(true)
+    const sidebarIconOnly = ref(false)
 
     function toggleSidebar() {
-      sidebarOpened.value = !sidebarOpened.value
+      sidebarVisible.value = !sidebarVisible.value
     }
 
-    function setSidebarOpened(opened: boolean) {
-      sidebarOpened.value = opened
+    function setSidebarVisible(visible: boolean) {
+      sidebarVisible.value = visible
+    }
+
+    function toggleSidebarIconOnly() {
+      sidebarIconOnly.value = !sidebarIconOnly.value
+    }
+
+    function setSidebarIconOnly(iconOnly: boolean) {
+      sidebarIconOnly.value = iconOnly
     }
 
     return {
-      sidebarOpened,
+      sidebarVisible,
+      sidebarIconOnly,
       toggleSidebar,
-      setSidebarOpened,
+      setSidebarVisible,
+      toggleSidebarIconOnly,
+      setSidebarIconOnly,
     }
   },
   {

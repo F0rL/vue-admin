@@ -4,19 +4,13 @@ import { useRoute } from 'vue-router'
 import { useAppStore } from '@/store/modules/app'
 import { useUserStore } from '@/store/modules/user'
 import { logoutAndReset } from '@/router'
-import {
-  Expand,
-  Fold,
-  User,
-  Setting,
-  SwitchButton,
-} from '@element-plus/icons-vue'
+import { CommonIcon } from '@/components/CommonIcon'
 
 const route = useRoute()
 const appStore = useAppStore()
 const userStore = useUserStore()
 
-const isCollapse = computed(() => !appStore.sidebarOpened)
+const isSidebarHidden = computed(() => !appStore.sidebarVisible)
 
 const breadcrumbs = computed(() => {
   const matched = route.matched.filter(item => item.meta?.title)
@@ -40,22 +34,18 @@ async function handleLogout() {
     class="h-14 px-4 flex items-center justify-between bg-white border-b border-slate-200/80"
   >
     <div class="flex items-center gap-3">
-      <el-button
-        text
+      <div
         @click="handleToggleSidebar"
-        class="text-slate-500! hover:text-blue-600!"
+        class="flex items-center justify-center p-2 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer"
       >
-        <el-icon :size="20">
-          <Fold v-if="!isCollapse" />
-          <Expand v-else />
-        </el-icon>
-      </el-button>
+        <CommonIcon :icon="isSidebarHidden ? 'el-Expand' : 'el-Fold'" :size="16" />
+      </div>
 
       <el-breadcrumb separator="/">
         <el-breadcrumb-item
           v-for="item in breadcrumbs"
           :key="item.path"
-          :to="{ path: item.path }"
+          :to="item.path === route.path ? { path: item.path } : undefined"
         >
           {{ item.title }}
         </el-breadcrumb-item>
@@ -77,15 +67,15 @@ async function handleLogout() {
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item>
-              <el-icon><User /></el-icon>
+              <CommonIcon icon="el-User" :size="16" />
               <span>个人中心</span>
             </el-dropdown-item>
             <el-dropdown-item>
-              <el-icon><Setting /></el-icon>
+              <CommonIcon icon="el-Setting" :size="16" />
               <span>系统设置</span>
             </el-dropdown-item>
             <el-dropdown-item divided @click="handleLogout">
-              <el-icon><SwitchButton /></el-icon>
+              <CommonIcon icon="el-SwitchButton" :size="16" />
               <span>退出登录</span>
             </el-dropdown-item>
           </el-dropdown-menu>

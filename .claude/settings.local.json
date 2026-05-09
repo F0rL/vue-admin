@@ -5,7 +5,8 @@
       "Bash(curl -s http://localhost:5003/pc/)",
       "Skill(update-config)",
       "Bash(dir \"d:\\\\code\\\\store\\\\vue-admin\\\\node_modules\\\\@element-plus\\\\icons-vue\\\\dist\")",
-      "Bash(npx vue-tsc *)"
+      "Bash(npx vue-tsc *)",
+      "Bash(npm run *)"
     ],
     "defaultMode": "acceptEdits"
   }
