@@ -1,8 +1,37 @@
 @import 'tailwindcss';
+@import 'element-plus/theme-chalk/dark/css-vars.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  color: #0f172a;
-  background: #f8fafc;
+  --app-bg-color: #f8fafc;
+  --app-text-color: #0f172a;
+  --app-header-bg: #ffffff;
+  --app-sidebar-bg: #ffffff;
+  --app-border-color: #e2e8f0;
+  --app-menu-hover-bg: #eff6ff;
+  --app-menu-active-color: #2563eb;
+  --app-menu-hover-item-bg: #f1f5f9;
+  --app-header-hover-bg: #f8fafc;
+}
+
+html.dark {
+  --app-bg-color: #0a0a0a;
+  --app-text-color: #e5eaf3;
+  --app-header-bg: #1d1e1f;
+  --app-sidebar-bg: #141414;
+  --app-border-color: #363637;
+  --app-menu-hover-bg: #1d3043;
+  --app-menu-active-color: #409eff;
+  --app-menu-hover-item-bg: #262727;
+  --app-header-hover-bg: #262727;
+}
+
+/* 主题切换 View Transition：隐藏旧快照，完全由新快照做 clip 动画 */
+::view-transition-new(root),
+::view-transition-old(root) {
+  /* 关闭默认动画 */
+  animation: none;
 }
 
 html,
@@ -18,8 +47,8 @@ body {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial,
     sans-serif;
-  color: #0f172a;
-  background: #f8fafc;
+  color: var(--app-text-color);
+  background: var(--app-bg-color);
 }
 
 #app {

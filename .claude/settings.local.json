@@ -6,7 +6,11 @@
       "Skill(update-config)",
       "Bash(dir \"d:\\\\code\\\\store\\\\vue-admin\\\\node_modules\\\\@element-plus\\\\icons-vue\\\\dist\")",
       "Bash(npx vue-tsc *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "WebSearch",
+      "WebFetch(domain:element-plus.org)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm build *)"
     ],
     "defaultMode": "acceptEdits"
   }

@@ -6,6 +6,7 @@ export const useAppStore = defineStore(
   () => {
     const sidebarVisible = ref(true)
     const sidebarIconOnly = ref(false)
+    const isDark = ref(false)
 
     function toggleSidebar() {
       sidebarVisible.value = !sidebarVisible.value
@@ -23,13 +24,27 @@ export const useAppStore = defineStore(
       sidebarIconOnly.value = iconOnly
     }
 
+    function toggleDark() {
+      isDark.value = !isDark.value
+      document.documentElement.classList.toggle('dark', isDark.value)
+    }
+
+    function initTheme() {
+      if (isDark.value) {
+        document.documentElement.classList.add('dark')
+      }
+    }
+
     return {
       sidebarVisible,
       sidebarIconOnly,
+      isDark,
       toggleSidebar,
       setSidebarVisible,
       toggleSidebarIconOnly,
       setSidebarIconOnly,
+      toggleDark,
+      initTheme,
     }
   },
   {

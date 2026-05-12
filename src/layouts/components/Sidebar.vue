@@ -33,8 +33,6 @@ function handleToggleIconOnly() {
       :unique-opened="false"
       class="sidebar-menu border-none!"
       background-color="transparent"
-      text-color="#475569"
-      active-text-color="#2563eb"
     >
       <template v-for="item in menuList" :key="item.path">
         <el-sub-menu v-if="item.children?.length" :index="item.path">
@@ -66,7 +64,8 @@ function handleToggleIconOnly() {
   >
     <div
       @click="handleToggleIconOnly"
-      class="flex items-center justify-center p-1 bg-gray-100 hover:bg-gray-200 rounded-md"
+      class="flex items-center justify-center p-1 rounded-md transition-colors"
+      :class="appStore.isDark ? 'hover:bg-(--app-menu-hover-item-bg)' : 'bg-gray-100 hover:bg-gray-200'"
     >
       <CommonIcon
         :icon="isCollapse ? 'el-DArrowRight' : 'el-DArrowLeft'"
@@ -78,8 +77,9 @@ function handleToggleIconOnly() {
 
 <style scoped>
 .sidebar-menu {
-  --el-menu-hover-bg-color: #eff6ff;
-  --el-menu-active-color: #2563eb;
+  --el-menu-hover-bg-color: var(--app-menu-hover-bg);
+  --el-menu-active-color: var(--app-menu-active-color);
+  --el-menu-text-color: var(--app-text-color);
   width: 100%;
 }
 
@@ -87,12 +87,12 @@ function handleToggleIconOnly() {
   width: 100% !important;
 }
 
-.el-menu-item.is-active {
-  background-color: #eff6ff !important;
-  border-right: 3px solid #2563eb;
+:deep(.el-menu-item.is-active) {
+  background-color: var(--app-menu-hover-bg) !important;
+  border-right: 3px solid var(--app-menu-active-color);
 }
 
-.el-menu-item:hover {
-  background-color: #f1f5f9 !important;
+:deep(.el-menu-item:hover) {
+  background-color: var(--app-menu-hover-item-bg) !important;
 }
 </style>

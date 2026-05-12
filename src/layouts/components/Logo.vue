@@ -6,7 +6,8 @@ const appStore = useAppStore()
 
 <template>
   <div
-    class="h-14 px-2 flex items-center justify-center bg-white overflow-hidden transition-all duration-300"
+    class="h-14 px-2 flex items-center justify-center overflow-hidden transition-all duration-300"
+    :class="appStore.isDark ? 'bg-(--app-sidebar-bg)' : 'bg-white'"
   >
     <div class="flex items-center gap-3 min-w-0">
       <div
@@ -16,7 +17,8 @@ const appStore = useAppStore()
       </div>
       <span
         v-show="!appStore.sidebarIconOnly"
-        class="text-base font-semibold text-slate-700 whitespace-nowrap"
+        class="text-base font-semibold whitespace-nowrap"
+        :class="appStore.isDark ? 'text-(--app-text-color)' : 'text-slate-700'"
       >
         Vue Admin
       </span>

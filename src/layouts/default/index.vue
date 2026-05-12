@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAppStore } from '@/store/modules/app'
 import { useUserStore } from '@/store/modules/user'
 import Logo from '../components/Logo.vue'
@@ -8,6 +8,10 @@ import Header from '../components/Header.vue'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
+
+onMounted(() => {
+  appStore.initTheme()
+})
 
 const sidebarWidthClass = computed(() => {
   if (!appStore.sidebarVisible) return 'w-0 overflow-hidden'
@@ -33,11 +37,11 @@ const menuList = computed(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen flex bg-gray-100">
+  <div class="h-screen w-screen flex bg-gray-100 dark:bg-(--app-bg-color)">
     <!-- 侧边栏 -->
     <aside
       :class="[
-        'h-full flex flex-col bg-white border-r border-gray-200 transition-all duration-300',
+        'h-full flex flex-col bg-white dark:bg-(--app-sidebar-bg) border-r border-gray-200 dark:border-(--app-border-color) transition-all duration-300',
         sidebarWidthClass,
       ]"
     >
