@@ -1,6 +1,11 @@
 import type { AppRouteRecordRaw } from '@/router/types'
 import type { MenuTree } from '@/store/modules/user'
 
+export interface BreadcrumbItem {
+  title: string
+  path: string
+}
+
 function normalizePath(path: string): string {
   return path.replace(/\/+/g, '/')
 }
@@ -60,6 +65,49 @@ export function filterRoutesByMenus(
   })
 
   return allowedRoutes
+}
+
+// 根据当前路径从菜单树中查找面包屑路径
+export function getBreadcrumbByPath(
+  menus: MenuTree[],
+  currentPath: string
+): BreadcrumbItem[] {
+  const normalizedPath = normalizePath(currentPath)
+
+  for (const menu of menus) {
+    const menuPath = normalizePath(menu.path)
+
+    if (normalizedPath === menuPath) {
+      return [{ title: menu.title, path: menuPath }]
+    }
+
+    if (menu.children?.length) {
+      for (const child of menu.children) {
+        const childPath = resolveRoutePath(menuPath, child.path)
+
+        if (normalizedPath === childPath) {
+          return [
+            { title: menu.title, path: menuPath },
+            { title: child.title, path: childPath },
+          ]
+        }
+
+        // 子菜单的子级（三级菜单）
+        if (child.children?.length) {
+          const grandBreadcrumb = getBreadcrumbByPath(child.children, childPath)
+          if (grandBreadcrumb.length) {
+            return [
+              { title: menu.title, path: menuPath },
+              { title: child.title, path: childPath },
+              ...grandBreadcrumb,
+            ]
+          }
+        }
+      }
+    }
+  }
+
+  return []
 }
 
 // 获取第一个有效路由路径

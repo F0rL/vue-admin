@@ -4,6 +4,8 @@ import { useRoute } from 'vue-router'
 import { useAppStore } from '@/store/modules/app'
 import { useUserStore } from '@/store/modules/user'
 import { logoutAndReset } from '@/router'
+import { getBreadcrumbByPath } from '@/router/utils'
+import type { BreadcrumbItem } from '@/router/utils'
 import { CommonIcon } from '@/components/CommonIcon'
 
 const route = useRoute()
@@ -12,12 +14,16 @@ const userStore = useUserStore()
 
 const isSidebarHidden = computed(() => !appStore.sidebarVisible)
 
-const breadcrumbs = computed(() => {
-  const matched = route.matched.filter(item => item.meta?.title)
-  return matched.map(item => ({
-    title: item.meta.title as string,
-    path: item.path,
-  }))
+const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+  const menus = userStore.menuTree
+  if (!menus?.length) {
+    const matched = route.matched.filter(item => item.meta?.title)
+    return matched.map(item => ({
+      title: item.meta.title as string,
+      path: item.path,
+    }))
+  }
+  return getBreadcrumbByPath(menus, route.path)
 })
 
 function handleToggleSidebar() {
