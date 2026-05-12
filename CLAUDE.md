@@ -6,20 +6,32 @@
 
 ## 技术栈
 
-| 类别 | 选型 |
-|------|------|
-| 框架 | Vue 3 (`<script setup>` + Composition API) |
-| 构建 | Vite (rolldown-vite) |
-| 语言 | TypeScript (strict) |
-| 路由 | Vue Router 4 (HTML5 history) |
-| 状态管理 | Pinia (with persistedstate) |
-| UI 框架 | Element Plus |
-| 图标 | Element Plus Icons（通过 CommonIcon 组件封装） |
-| HTTP | Axios（自定义 HttpRequest 封装） |
-| 样式 | Tailwind CSS 4 |
-| 包管理 | pnpm |
-| 代码检查 | ESLint (flat config) + Prettier |
-| 开发端口 | 5000 |
+| 类别     | 选型                                           |
+| -------- | ---------------------------------------------- |
+| 框架     | Vue 3 (`<script setup>` + Composition API)     |
+| 构建     | Vite (rolldown-vite)                           |
+| 语言     | TypeScript (strict)                            |
+| 路由     | Vue Router 4 (HTML5 history)                   |
+| 状态管理 | Pinia (with persistedstate)                    |
+| UI 框架  | Element Plus                                   |
+| 图标     | Element Plus Icons（通过 CommonIcon 组件封装） |
+| HTTP     | Axios（自定义 HttpRequest 封装）               |
+| 样式     | Tailwind CSS 4                                 |
+| 包管理   | pnpm                                           |
+| 代码检查 | ESLint (flat config) + Prettier                |
+| 开发端口 | 5000                                           |
+
+### 自动导入（unplugin）
+
+项目使用 `unplugin-auto-import` 和 `unplugin-vue-components` 实现自动导入：
+
+- **`unplugin-auto-import`** — 自动导入 Vue 3 组合式 API（`ref`、`computed`、`watch` 等）和 Vue Router（`useRouter`、`useRoute` 等），无需手动 `import`
+  - 类型声明输出至 `auto-imports.d.ts`
+- **`unplugin-vue-components`** — 自动导入 Element Plus 组件，模板中直接使用 `<el-button>` 等组件无需手动注册
+  - 类型声明输出至 `components.d.ts`
+  - Element Plus 组件样式通过 `importStyle: 'css'` 自动引入
+
+**注意**：`ref`、`computed` 等 API 虽被自动导入，但在类型不一致或 ESLint 规则严格时仍需显式 import 以保证可读性和类型安全。项目文档和代码审查中遇到这些 API 无需建议补充 import。
 
 ## 目录结构
 
@@ -138,11 +150,11 @@ pnpm format         # Prettier 格式化
 
 ## 环境变量
 
-| 变量 | 说明 |
-|------|------|
-| `VITE_APP_NAME` | 应用名称 |
-| `VITE_BASE_URL` | 路由 base URL（如 `/pc/`） |
-| `VITE_API_BASE_URL` | API 基础地址 |
+| 变量                | 说明                       |
+| ------------------- | -------------------------- |
+| `VITE_APP_NAME`     | 应用名称                   |
+| `VITE_BASE_URL`     | 路由 base URL（如 `/pc/`） |
+| `VITE_API_BASE_URL` | API 基础地址               |
 
 新增环境变量时，需同步更新 `.env.*` 和 `types/global.d.ts`。
 
@@ -150,10 +162,10 @@ pnpm format         # Prettier 格式化
 
 ```typescript
 interface RouteMeta {
-  title: string       // 页面标题（必填）
-  icon?: string       // 菜单图标
-  hideBreadcrumb?: boolean  // 隐藏面包屑
-  hideMenu?: boolean  // 隐藏菜单
+  title: string // 页面标题（必填）
+  icon?: string // 菜单图标
+  hideBreadcrumb?: boolean // 隐藏面包屑
+  hideMenu?: boolean // 隐藏菜单
 }
 ```
 
