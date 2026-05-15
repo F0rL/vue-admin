@@ -64,7 +64,7 @@ types/
 
 ### 路由
 
-- `src/router/routes/basic.ts` — 基础路由：登录页（`/auth`、`/auth/login`、`/auth/qrcode-login`）、404 兜底路由
+- `src/router/routes/basic.ts` — 基础路由：登录页（`/auth/login`）、404 兜底路由
 - `src/router/routes/modules/` — 业务模块路由（通过 `import.meta.glob('./modules/**/*.ts', { eager: true })` 自动收集）
 - 动态路由由用户菜单权限驱动，登录后根据 `menuTree` 过滤并注入
 - 路由守卫（`src/router/index.ts`）核心流程：
@@ -73,7 +73,7 @@ types/
   - **已登录 + 路由未添加** → 添加动态路由，强制跳转至 `getRedirectPath()`
   - **未登录 + 白名单路由** → 放行
   - **未登录 + 其他页面** → 跳转至 `/auth/login?redirect=xxx`
-- 白名单：`Auth`、`AuthLogin`、`AuthQrcodeLogin`、`EXCEPTION`、`Page_Not_Found`、`Root`
+- 白名单：`Auth`、`AuthLogin`、`EXCEPTION`、`Page_Not_Found`、`Root`
 - 新增页面 → 先在 `src/views/` 下创建页面组件 → 再在 `src/router/routes/modules/` 下补充路由定义
 - 路由元信息字段见**路由元信息**章节
 

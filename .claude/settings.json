@@ -1,9 +1,16 @@
 {
+  "attribution": {
+    "commit": ""
+  },
+  "language": "chinese",
   "permissions": {
     "allow": [
       "Bash(pnpm typecheck *)",
       "Bash(pnpm build *)",
-      "Bash(pnpm ls *)"
+      "Bash(pnpm ls *)",
+      "Skill(ui-ux-pro-max:ui-ux-pro-max)",
+      "Skill(ui-ux-pro-max:ui-ux-pro-max:*)",
+      "Bash(python3 \"C:/Users/kuma/.claude/plugins/cache/ui-ux-pro-max-skill/ui-ux-pro-max/2.5.0/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"admin dashboard saas enterprise login\" --design-system -p \"Vue Admin\")"
     ]
   }
 }

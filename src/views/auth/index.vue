@@ -1,68 +1,57 @@
 <template>
   <div
-    class="relative grid h-full min-h-full overflow-hidden bg-[linear-gradient(135deg,#f4f7fb_0%,#eef3f8_48%,#f8fafc_100%)] lg:grid-cols-[minmax(0,1.12fr)_minmax(420px,520px)]"
+    class="relative grid min-h-dvh overflow-hidden bg-gradient-to-br from-blue-50 via-white to-slate-50 lg:grid-cols-[1fr_480px]"
   >
+    <!-- Decorative elements -->
     <div
-      class="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.05)_1px,transparent_1px)] bg-[length:32px_32px] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.42),transparent_88%)]"
-    ></div>
+      class="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(37,99,235,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.04)_1px,transparent_1px)] bg-[length:48px_48px]"
+    />
     <div
-      class="pointer-events-none absolute left-[-10%] top-[10%] h-[38rem] w-[38rem] rounded-full bg-[rgba(30,64,175,0.14)] blur-[90px]"
-    ></div>
+      class="pointer-events-none absolute -left-32 top-1/4 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-blue-500/10 blur-[120px]"
+    />
     <div
-      class="pointer-events-none absolute bottom-[-18%] right-[-8%] h-[32rem] w-[32rem] rounded-full bg-[rgba(8,145,178,0.12)] blur-[90px]"
-    ></div>
+      class="pointer-events-none absolute -bottom-32 -right-32 h-[400px] w-[400px] rounded-full bg-cyan-400/10 blur-[100px]"
+    />
 
+    <!-- Left: Branding panel -->
     <section
-      class="relative z-10 hidden h-full flex-col justify-center px-12 py-10 lg:flex xl:px-16"
+      class="relative z-10 hidden h-full flex-col justify-between px-16 py-16 lg:flex"
     >
-      <h1
-        class="mt-7 max-w-[12ch] text-4xl font-bold leading-tight tracking-[-0.03em] text-slate-900 xl:text-5xl"
-      >
-        现代化后台管理系统登录入口
-      </h1>
-      <p class="mt-5 max-w-[620px] text-[17px] leading-8 text-slate-600">
-        基于 Vue 3、TypeScript、Pinia 与 Tailwind CSS
-        构建，页面风格参考主流后台管理系统，强调清晰、稳定与可扩展。
-      </p>
+      <div>
+        <div class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white shadow-lg shadow-blue-600/20"
+          >
+            A
+          </div>
+          <span class="text-lg font-semibold text-slate-900">Admin</span>
+        </div>
+      </div>
 
-      <div class="mt-10 grid max-w-[640px] gap-4">
-        <div
-          class="rounded-[22px] border border-slate-200/70 bg-white/75 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur"
+      <div class="max-w-md">
+        <h1
+          class="text-[40px] font-bold leading-[1.15] tracking-tight text-slate-900"
         >
-          <span
-            class="mb-2.5 inline-block text-xs font-bold uppercase tracking-[0.08em] text-teal-700"
-          >
-            统一体验
-          </span>
-          <strong class="block text-lg font-bold text-slate-900">
-            登录、权限、路由组织保持一致
-          </strong>
-          <p class="mt-2 text-sm leading-7 text-slate-500">
-            适合作为后台模板后续继续扩展工作台、系统管理、数据看板等能力。
-          </p>
-        </div>
-        <div
-          class="rounded-[22px] border border-slate-200/70 bg-white/75 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur"
-        >
-          <span
-            class="mb-2.5 inline-block text-xs font-bold uppercase tracking-[0.08em] text-teal-700"
-          >
-            快速接入
-          </span>
-          <strong class="block text-lg font-bold text-slate-900">
-            Element Plus + 按需引入
-          </strong>
-          <p class="mt-2 text-sm leading-7 text-slate-500">
-            减少样式和组件重复建设，后续表单、表格、弹窗都可直接复用。
-          </p>
-        </div>
+          高效管理
+          <span class="text-blue-600">后台系统</span>
+        </h1>
+        <p class="mt-4 text-base leading-relaxed text-slate-500">
+          一站式管理平台，涵盖用户、权限、数据看板等功能模块，助力团队高效协作。
+        </p>
+      </div>
+
+      <div class="flex items-center gap-6 text-sm text-slate-400">
+        <span>&copy; 2026 Admin</span>
+        <span class="h-3 w-px bg-slate-200" />
+        <span>Vue 3 &middot; TypeScript &middot; Tailwind CSS</span>
       </div>
     </section>
 
+    <!-- Right: Login form panel -->
     <section
-      class="relative z-10 flex min-h-full items-center justify-center px-4 py-4 sm:px-6 lg:px-8"
+      class="relative z-10 flex min-h-dvh items-center justify-center px-5 py-8 lg:min-h-full lg:bg-white lg:shadow-[-8px_0_40px_rgba(0,0,0,0.04)]"
     >
-      <div class="w-full max-w-[460px]">
+      <div class="w-full max-w-100">
         <router-view />
       </div>
     </section>

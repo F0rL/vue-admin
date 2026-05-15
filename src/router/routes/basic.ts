@@ -49,14 +49,6 @@ export const Login: AppRouteRecordRaw = {
         title: '登录',
       },
     },
-    {
-      path: 'qrcode-login',
-      name: 'AuthQrcodeLogin',
-      component: () => import('@/views/auth/qrcode-login.vue'),
-      meta: {
-        title: '登录',
-      },
-    },
   ],
 }
 
@@ -77,7 +69,6 @@ function getAsyncRoutes() {
 export const WHITE_NAME_LIST = [
   'Auth',
   'AuthLogin',
-  'AuthQrcodeLogin',
   'EXCEPTION',
   'Page_Not_Found',
   'Root',
