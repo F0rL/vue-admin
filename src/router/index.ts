@@ -93,12 +93,15 @@ router.beforeEach(async (to, _from, next) => {
     // 首次访问，需要添加动态路由
     if (!userStore.isRouteAdded) {
       const added = addAsyncRoutes()
-
       if (added) {
-        // 获取目标路由
+        if (to.path !== '/' && to.path !== '') {
+          // 用 to.fullPath 重新导航，触发路由重新匹配
+          // 否则虽然路由池已更新，但当前 to 仍指向旧的匹配结果（如 404 路由）
+          next({ path: to.fullPath, replace: true })
+          return
+        }
+        // 访问的是根路径，跳转到第一个有效路由
         const redirectPath = getRedirectPath()
-
-        // 强制跳转到目标路由，而不是使用 to 对象
         next({ path: redirectPath, replace: true })
         return
       } else {

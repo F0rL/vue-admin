@@ -83,10 +83,10 @@ export const useUserStore = defineStore(
           icon: 'el-Setting',
           children: [
             {
-              path: 'user',
-              name: 'SystemUser',
-              title: '用户管理',
-              icon: 'el-User',
+              path: 'menu',
+              name: 'SystemMenu',
+              title: '菜单管理',
+              icon: 'el-Menu',
             },
             {
               path: 'role',
@@ -101,10 +101,10 @@ export const useUserStore = defineStore(
               icon: 'el-User',
             },
             {
-              path: 'menu',
-              name: 'SystemMenu',
-              title: '菜单管理',
-              icon: 'el-Menu',
+              path: 'user',
+              name: 'SystemUser',
+              title: '用户管理',
+              icon: 'el-User',
             },
             {
               path: 'log',
