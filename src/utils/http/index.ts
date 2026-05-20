@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosHeaders } from 'axios'
-import type { AxiosHeaderValue, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { router, resetRouter } from '@/router'
 import { store } from '@/store'
 import { useUserStore } from '@/store/modules/user'
@@ -17,7 +17,6 @@ import {
   type UploadRequestConfig,
 } from './types'
 
-const DEFAULT_SUCCESS_CODE = 200
 const DEFAULT_RETRY_DELAY = 300
 const LOGIN_PATH = '/auth/login'
 const IDEMPOTENT_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE'])
@@ -100,7 +99,10 @@ function getRequestMethod(config: HttpRequestConfig): string {
   return (config.method ?? 'get').toUpperCase()
 }
 
-function canRetryRequest(config: HttpRequestConfig, retry: RetryOptions): boolean {
+function canRetryRequest(
+  config: HttpRequestConfig,
+  retry: RetryOptions
+): boolean {
   if (retry.allowNonIdempotent) {
     return true
   }
@@ -405,6 +407,8 @@ export class HttpRequest {
 
         await this.closeLoading(config)
 
+        // HTTP 层错误（4xx/5xx）在此统一处理，不抛到业务层
+        this.handleHttpError(error)
         return Promise.reject(error)
       }
     )
@@ -421,15 +425,16 @@ export class HttpRequest {
       const axiosError = error as AxiosError<ApiResponse<unknown>>
       const retry = config.retry
 
-      if (!retry || !shouldRetry(axiosError, config, retry, attempt)) {
-        if (!isAbortError(axiosError)) {
-          await this.handleHttpError(axiosError)
-        }
+      if (isAbortError(axiosError)) {
         throw error
       }
 
-      await sleep(resolveRetryDelay(retry, attempt + 1, axiosError))
-      return this.dispatchRequest<T>(config, attempt + 1)
+      if (retry && shouldRetry(axiosError, config, retry, attempt)) {
+        await sleep(resolveRetryDelay(retry, attempt + 1, axiosError))
+        return this.dispatchRequest<T>(config, attempt + 1)
+      }
+
+      throw error
     }
   }
 
@@ -454,9 +459,13 @@ export class HttpRequest {
       if (nextConfig.signal.aborted) {
         controller.abort()
       } else {
-        nextConfig.signal.addEventListener?.('abort', () => controller.abort(), {
-          once: true,
-        })
+        nextConfig.signal.addEventListener?.(
+          'abort',
+          () => controller.abort(),
+          {
+            once: true,
+          }
+        )
       }
     }
 
@@ -473,18 +482,16 @@ export class HttpRequest {
 
   private mergeHeaders(config: HttpRequestConfig): AxiosHeaders {
     const headers = new AxiosHeaders()
-    const rawHeaders = config.headers as HttpHeadersInput | AxiosHeaders | undefined
-
-    if (rawHeaders instanceof AxiosHeaders) {
-      rawHeaders.forEach((value: AxiosHeaderValue, key: string) => {
-        headers.set(key, value)
-      })
-    } else if (rawHeaders) {
-      Object.entries(rawHeaders).forEach(([key, value]) => {
+    const rawHeaders = config.headers as
+      | HttpHeadersInput
+      | AxiosHeaders
+      | undefined
+    if (rawHeaders) {
+      for (const [key, value] of Object.entries(rawHeaders)) {
         if (value !== undefined) {
-          headers.set(key, value as AxiosHeaderValue)
+          headers.set(key, value)
         }
-      })
+      }
     }
 
     const token = this.getToken()
@@ -507,14 +514,16 @@ export class HttpRequest {
 
   private handleBusinessError<T>(response: HttpAxiosResponse<T>) {
     const { data, config } = response
-    const successCode = config.successCode ?? DEFAULT_SUCCESS_CODE
 
-    if (data.code === successCode) {
+    if (data.success) {
       return
     }
 
-    if (this.shouldShowBusinessErrorMessage(config) && data.message) {
-      feedback.error(data.message)
+    const message =
+      data.error?.message || data.message || '请求失败，请稍后重试'
+
+    if (this.shouldShowBusinessErrorMessage(config) && message) {
+      feedback.error(message)
     }
 
     throw new HttpBusinessError(response)
@@ -524,7 +533,10 @@ export class HttpRequest {
     const config = error.config as HttpRequestConfig | undefined
     const status = error.response?.status
     const message =
-      error.response?.data?.message || error.message || '网络异常，请稍后重试'
+      error.response?.data?.error?.message ||
+      error.response?.data?.message ||
+      error.message ||
+      '网络异常，请稍后重试'
     const shouldShowMessage = this.shouldShowHttpErrorMessage(config)
 
     if (status === 401) {

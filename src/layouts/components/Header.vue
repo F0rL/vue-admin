@@ -44,7 +44,10 @@ async function handleLogout() {
         @click="handleToggleSidebar"
         class="flex items-center justify-center p-2 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer"
       >
-        <CommonIcon :icon="isSidebarHidden ? 'el-Expand' : 'el-Fold'" :size="16" />
+        <CommonIcon
+          :icon="isSidebarHidden ? 'el-Expand' : 'el-Fold'"
+          :size="16"
+        />
       </div>
 
       <el-breadcrumb separator="/">

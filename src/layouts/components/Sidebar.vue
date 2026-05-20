@@ -25,7 +25,12 @@ function handleToggleIconOnly() {
 </script>
 
 <template>
-  <div :class="['flex-1 overflow-x-hidden transition-all duration-300', isCollapse ? 'w-16' : 'w-56']">
+  <div
+    :class="[
+      'flex-1 overflow-x-hidden transition-all duration-300',
+      isCollapse ? 'w-16' : 'w-56',
+    ]"
+  >
     <el-menu
       :default-active="route.path"
       :collapse="isCollapse"

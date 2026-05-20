@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { FormInstance, FormRules } from 'element-plus'
-import { ArrowLeft, Lock, Message, User } from '@element-plus/icons-vue'
+import { Lock, Message, User } from '@element-plus/icons-vue'
 import { feedback } from '@/utils/feedback'
 import { useUserStore } from '@/store/modules/user'
+import { useLoading } from '@/utils/http/useRequest'
 
 interface LoginForm {
   username: string
@@ -18,12 +19,11 @@ const route = useRoute()
 const userStore = useUserStore()
 
 const formRef = useTemplateRef<FormInstance>('formRef')
-const submitting = ref(false)
 const rememberMe = ref(true)
 
 const form = reactive<LoginForm>({
   username: 'admin',
-  password: '123456',
+  password: 'admin123',
 })
 
 const rules = reactive<FormRules>({
@@ -37,39 +37,29 @@ const rules = reactive<FormRules>({
   ],
 })
 
+// 将 login 调用包装为带 loading 状态的 execute
+const { loading: submitting, execute: doLogin } = useLoading(() =>
+  userStore.login(form.username, form.password)
+)
+
 async function handleSubmit() {
   if (!formRef.value) return
 
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
-  try {
-    submitting.value = true
+  const result = await doLogin()
+  if (result === undefined) return // loading 中或已被拦截
 
-    await feedback.withLoading(
-      () => userStore.login(form.username, form.password),
-      {
-        text: '正在登录，请稍候...',
-        minDuration: 500,
-      },
-    )
+  feedback.notifySuccess('登录成功', `欢迎回来，${form.username}`, {
+    duration: 2500,
+  })
 
-    feedback.notifySuccess('登录成功', `欢迎回来，${form.username}`, {
-      duration: 2500,
-    })
-
-    const redirectPath =
-      typeof route.query.redirect === 'string' && route.query.redirect
-        ? route.query.redirect
-        : userStore.getFirstRoutePath() || '/dashboard/index'
-    await router.push(redirectPath)
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : '登录失败，请稍后重试'
-    feedback.error(message)
-  } finally {
-    submitting.value = false
-  }
+  const redirectPath =
+    typeof route.query.redirect === 'string' && route.query.redirect
+      ? route.query.redirect
+      : userStore.getFirstRoutePath() || '/dashboard/index'
+  await router.push(redirectPath)
 }
 </script>
 
@@ -85,6 +75,7 @@ async function handleSubmit() {
       <el-form-item prop="username">
         <el-input
           v-model="form.username"
+          :disabled="submitting"
           placeholder="请输入账号"
           class="login-input"
         >
@@ -97,6 +88,7 @@ async function handleSubmit() {
       <el-form-item prop="password">
         <el-input
           v-model="form.password"
+          :disabled="submitting"
           type="password"
           show-password
           placeholder="请输入密码"

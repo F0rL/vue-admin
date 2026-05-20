@@ -110,14 +110,12 @@ router.beforeEach(async (to, _from, next) => {
     next()
     return
   }
-
   // ==================== 未登录 ====================
   // 访问登录页，放行
   if (WHITE_NAME_LIST.includes(to.name as string)) {
     next()
     return
   }
-
   // 其他页面，跳转到登录页
   next(`/auth/login?redirect=${encodeURIComponent(to.fullPath)}`)
 })

@@ -12,12 +12,7 @@ export interface LoginParams {
  * 登录返回结果。
  */
 export interface LoginResult {
-  token: string
-  userInfo: {
-    id: string
-    name: string
-    avatar: string
-  }
+  sessionId: string
 }
 
 /**
@@ -33,21 +28,15 @@ export interface UserProfile {
 /**
  * 用户模块 API 示例。
  */
-export const userApi = {
+export const authApi = {
   login(data: LoginParams) {
-    return http.post<LoginResult, LoginParams>('/user/login', data, {
-      showLoading: true,
-      loadingText: '正在登录...',
-      showErrorMessage: true,
-    })
+    return http.post<LoginResult, LoginParams>('/auth/login', data)
   },
-
-  getProfile() {
-    return http.get<UserProfile>('/user/profile')
+  getCurrentUserInfo() {
+    return http.get<UserProfile>('/auth/me')
   },
-
   uploadAvatar(file: File) {
-    return http.upload<{ url: string }>('/user/avatar', file, undefined, {
+    return http.upload<{ url: string }>('/auth/avatar', file, undefined, {
       showLoading: true,
       loadingText: '正在上传头像...',
       retry: {

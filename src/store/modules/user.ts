@@ -4,6 +4,7 @@ import { asyncRoutes } from '@/router/routes/basic'
 import type { AppRouteRecordRaw } from '@/router/types'
 import type { IconName } from '@/components/CommonIcon/types'
 import { filterRoutesByMenus, getFirstValidPath } from '@/router/utils'
+import { authApi } from '@/api/auth'
 
 // 菜单树结构
 export interface MenuTree {
@@ -53,32 +54,13 @@ export const useUserStore = defineStore(
 
     // 登录
     async function login(username: string, password: string) {
-      // 验证账号密码
-      if (username !== 'admin' || password !== '123456') {
-        throw new Error('账号或密码错误，演示账号：admin / 123456')
-      }
-
-      // 模拟登录 API 调用
-      await new Promise(resolve => {
-        window.setTimeout(resolve, 500)
-      })
-
-      // 模拟后端返回的菜单数据
-      const mockUserInfo: UserInfo = {
-        id: '1',
-        name: username,
-        avatar: '',
-      }
-
-      const mockToken = 'mock-token-' + Date.now()
-
+      const res = await authApi.login({ username, password })
+      token.value = res.sessionId
+      const userRes = await authApi.getCurrentUserInfo()
+      setToken(token.value)
+      setUserInfo(userRes)
       await fetchMenuTree()
-
-      setToken(mockToken)
-      setUserInfo(mockUserInfo)
-      setPermissions(['admin'])
-
-      return { userInfo: mockUserInfo, token: mockToken }
+      return { userInfo: userRes, token: token.value }
     }
 
     // 模拟后端返回的菜单树数据
@@ -101,15 +83,33 @@ export const useUserStore = defineStore(
           icon: 'el-Setting',
           children: [
             {
+              path: 'user',
+              name: 'SystemUser',
+              title: '用户管理',
+              icon: 'el-User',
+            },
+            {
+              path: 'role',
+              name: 'SystemRole',
+              title: '角色管理',
+              icon: 'el-User',
+            },
+            {
+              path: 'department',
+              name: 'SystemDepartment',
+              title: '部门管理',
+              icon: 'el-User',
+            },
+            {
               path: 'menu',
               name: 'SystemMenu',
               title: '菜单管理',
               icon: 'el-Menu',
             },
             {
-              path: 'role',
-              name: 'SystemRole',
-              title: '角色管理',
+              path: 'log',
+              name: 'SystemLog',
+              title: '日志管理',
               icon: 'el-User',
             },
           ],

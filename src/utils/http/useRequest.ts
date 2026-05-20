@@ -1,4 +1,5 @@
 import { onBeforeUnmount, ref, shallowRef } from 'vue'
+import type { Ref } from 'vue'
 import type { GenericAbortSignal } from 'axios'
 import { router, resetRouter } from '@/router'
 import { store } from '@/store'
@@ -236,4 +237,42 @@ export function useGet<T>(
     execute,
     cancelAll,
   }
+}
+
+/**
+ * 为异步操作附加 loading 状态。
+ *
+ * 适合表单提交、按钮点击等需要控制 loading 状态的场景，
+ * 避免在每个组件中手动维护 `ref(false)` + try/finally。
+ *
+ * @example
+ * ```ts
+ * const { loading, execute } = useLoading(userStore.login)
+ *
+ * // 模板中使用
+ * <el-button :loading="loading" @click="execute('admin', '123')">登录</el-button>
+ * ```
+ */
+export function useLoading<TArgs extends unknown[], TReturn>(
+  fn: (...args: TArgs) => Promise<TReturn>
+): {
+  loading: Ref<boolean>
+  execute: (...args: TArgs) => Promise<TReturn | undefined>
+} {
+  const loading = ref(false)
+
+  async function execute(
+    ...args: TArgs
+  ): Promise<TReturn | undefined> {
+    if (loading.value) return
+
+    loading.value = true
+    try {
+      return await fn(...args)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { loading, execute }
 }

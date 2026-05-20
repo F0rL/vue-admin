@@ -11,16 +11,8 @@ const NOT_FOUND_META = {
 export const PAGE_NOT_FOUND_ROUTE: AppRouteRecordRaw = {
   path: '/:path(.*)*',
   name: PAGE_NOT_FOUND_NAME,
-  component: LAYOUT,
+  component: EXCEPTION_COMPONENT,
   meta: NOT_FOUND_META,
-  children: [
-    {
-      path: '', // 匹配父路径本身
-      name: 'EXCEPTION',
-      component: EXCEPTION_COMPONENT,
-      meta: NOT_FOUND_META,
-    },
-  ],
 }
 
 export const RootRoute: AppRouteRecordRaw = {

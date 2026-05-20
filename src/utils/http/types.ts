@@ -11,8 +11,17 @@ import type { Ref } from 'vue'
  * 后端标准响应结构。
  */
 export interface ApiResponse<T> {
-  code: number
+  success: boolean
   data: T
+  message?: string
+  error?: ApiError
+}
+
+/**
+ * 后端业务错误对象。
+ */
+export interface ApiError {
+  code: string
   message: string
 }
 
@@ -35,7 +44,9 @@ export interface RetryOptions {
    * 每次重试前的等待时间，单位毫秒。
    * 支持固定值或基于当前次数动态计算。
    */
-  delay?: number | ((attempt: number, error: AxiosError<ApiResponse<unknown>>) => number)
+  delay?:
+    | number
+    | ((attempt: number, error: AxiosError<ApiResponse<unknown>>) => number)
 }
 
 /**
@@ -56,11 +67,6 @@ export interface HttpRequestConfig<D = unknown> extends AxiosRequestConfig<D> {
    * Loading 文案。
    */
   loadingText?: string
-
-  /**
-   * 业务成功状态码，默认 200。
-   */
-  successCode?: number
 
   /**
    * 业务报错时是否自动弹出提示。
@@ -122,13 +128,18 @@ export interface HttpRequestOptions extends AxiosRequestConfig {
   /**
    * 自定义未授权处理逻辑。
    */
-  onUnauthorized?: (error: AxiosError<ApiResponse<unknown>>) => void | Promise<void>
+  onUnauthorized?: (
+    error: AxiosError<ApiResponse<unknown>>
+  ) => void | Promise<void>
 }
 
 /**
  * 上传文件时允许附带的额外字段。
  */
-export type UploadPayload = Record<string, string | Blob | number | boolean | null | undefined>
+export type UploadPayload = Record<
+  string,
+  string | Blob | number | boolean | null | undefined
+>
 
 /**
  * 便捷请求方法的可选配置。
@@ -159,8 +170,6 @@ export type HttpAxiosResponse<T = unknown, D = unknown> = Omit<
  * 统一业务异常模型。
  */
 export class HttpBusinessError<T = unknown, D = unknown> extends Error {
-  code: number
-
   response: HttpAxiosResponse<T, D>
 
   config: HttpRequestConfig<D>
@@ -168,7 +177,6 @@ export class HttpBusinessError<T = unknown, D = unknown> extends Error {
   constructor(response: HttpAxiosResponse<T, D>) {
     super(response.data.message || '请求失败')
     this.name = 'HttpBusinessError'
-    this.code = response.data.code
     this.response = response
     this.config = response.config
   }
