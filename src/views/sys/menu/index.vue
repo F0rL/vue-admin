@@ -1,23 +1,59 @@
 <script setup lang="ts">
-import { CommonIcon } from '@/components/CommonIcon'
+import { feedback } from '@/plugins/feedback'
 import { menuApi, type MenuTreeItem, type MenuType } from '@/api/menu'
+import EditMenuDrawer from './EditMenuDrawer.vue'
 
 const tableData = ref<MenuTreeItem[]>([])
+const loading = ref(false)
+
 async function getList() {
-  const res = await menuApi.tree()
-  tableData.value = res
+  loading.value = true
+  try {
+    const res = await menuApi.tree()
+    tableData.value = res
+  } finally {
+    loading.value = false
+  }
 }
 
-function handleAddChild(index: number, row: MenuTreeItem) {
-  console.log('新增下级', index, row)
+getList()
+
+function handleAdd() {
+  editDrawerRef.value?.open({ mode: 'create', treeData: tableData.value })
 }
 
-function handleEdit(index: number, row: MenuTreeItem) {
-  console.log('修改', index, row)
+function handleAddChild(row: MenuTreeItem) {
+  editDrawerRef.value?.open({
+    mode: 'createChild',
+    parent: row,
+    treeData: tableData.value,
+  })
 }
 
-function handleDelete(index: number, row: MenuTreeItem) {
-  console.log('删除', index, row)
+function handleEdit(row: MenuTreeItem) {
+  editDrawerRef.value?.open({
+    mode: 'edit',
+    row,
+    treeData: tableData.value,
+  })
+}
+
+async function handleDelete(row: MenuTreeItem) {
+  const confirmed = await feedback.confirm(
+    `确定删除「${row.name}」吗？${
+      row.children?.length ? '其子节点也将一并删除。' : ''
+    }`,
+    { title: '删除确认', type: 'warning' }
+  )
+  if (!confirmed) return
+
+  try {
+    await menuApi.delete(row.id)
+    feedback.success('删除成功')
+    await getList()
+  } catch {
+    // 接口层已处理错误提示
+  }
 }
 
 const typeMap: Record<
@@ -29,18 +65,24 @@ const typeMap: Record<
   button: { label: '按钮', tag: 'info' },
 }
 
-getList()
+const editDrawerRef = useTemplateRef('editDrawerRef')
 </script>
 
 <template>
   <div class="p-4 bg-white rounded">
-    <el-button type="primary">
-      <CommonIcon icon="el-Plus"></CommonIcon>
+    <el-button type="primary" @click="handleAdd">
+      <CommonIcon icon="el-Plus" />
       新增菜单
     </el-button>
-    <el-table class="mt-4" :data="tableData" row-key="id">
-      <el-table-column prop="name" label="标题" />
-      <el-table-column prop="type" label="类型">
+    <el-table
+      class="mt-4"
+      :data="tableData"
+      :loading="loading"
+      row-key="id"
+      default-expand-all
+    >
+      <el-table-column prop="name" label="标题" min-width="160" />
+      <el-table-column prop="type" label="类型" width="100" align="center">
         <template #default="scope">
           <el-tag
             :type="typeMap[scope.row.type as MenuType]?.tag"
@@ -50,10 +92,16 @@ getList()
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="path" label="路由地址" />
-      <el-table-column prop="component" label="页面组件" />
-      <el-table-column prop="permissionCode" label="权限标识" />
-      <el-table-column prop="status" label="状态">
+      <el-table-column prop="path" label="路由地址" min-width="160" />
+      <el-table-column prop="component" label="页面组件" min-width="160" />
+      <el-table-column prop="permissionCode" label="权限标识" min-width="140" />
+      <el-table-column
+        prop="sortOrder"
+        label="排序"
+        width="70"
+        align="center"
+      />
+      <el-table-column prop="status" label="状态" width="80" align="center">
         <template #default="scope">
           <el-tag
             :type="scope.row.status ? 'success' : 'danger'"
@@ -63,28 +111,21 @@ getList()
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200">
+      <el-table-column label="操作" align="center" width="240" fixed="right">
         <template #default="scope">
-          <div class="whitespace-nowrap">
+          <div class="flex items-center justify-end">
             <el-button
+              v-if="scope.row.type !== 'button'"
+              text
               type="primary"
-              link
-              @click="handleAddChild(scope.$index, scope.row)"
+              @click="handleAddChild(scope.row)"
             >
               新增下级
             </el-button>
-            <el-button
-              type="primary"
-              link
-              @click="handleEdit(scope.$index, scope.row)"
-            >
+            <el-button text type="primary" @click="handleEdit(scope.row)">
               修改
             </el-button>
-            <el-button
-              type="danger"
-              link
-              @click="handleDelete(scope.$index, scope.row)"
-            >
+            <el-button text type="danger" @click="handleDelete(scope.row)">
               删除
             </el-button>
           </div>
@@ -92,6 +133,7 @@ getList()
       </el-table-column>
     </el-table>
   </div>
+  <EditMenuDrawer ref="editDrawerRef" @saved="getList" />
 </template>
 
 <style scoped>

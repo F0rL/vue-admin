@@ -49,9 +49,11 @@ const menuList = computed(() => {
     <div class="flex-1 flex flex-col min-w-0">
       <Header />
       <main class="flex-1 overflow-auto p-4">
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component, route }">
           <transition name="fade-slide" mode="out-in">
-            <component :is="Component" />
+            <div :key="route.fullPath">
+              <component :is="Component" />
+            </div>
           </transition>
         </router-view>
       </main>
