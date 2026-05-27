@@ -48,7 +48,7 @@ async function handleDelete(row: MenuTreeItem) {
   if (!confirmed) return
 
   try {
-    await menuApi.delete(row.id)
+    await menuApi.delete({ ids: [row.id] })
     feedback.success('删除成功')
     await getList()
   } catch {
@@ -74,13 +74,7 @@ const editDrawerRef = useTemplateRef('editDrawerRef')
       <CommonIcon icon="el-Plus" />
       新增菜单
     </el-button>
-    <el-table
-      class="mt-4"
-      :data="tableData"
-      :loading="loading"
-      row-key="id"
-      default-expand-all
-    >
+    <el-table class="mt-4" :data="tableData" :loading="loading" row-key="id">
       <el-table-column prop="name" label="标题" min-width="160" />
       <el-table-column prop="type" label="类型" width="100" align="center">
         <template #default="scope">
@@ -111,21 +105,21 @@ const editDrawerRef = useTemplateRef('editDrawerRef')
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="240" fixed="right">
+      <el-table-column label="操作" align="center" width="180" fixed="right">
         <template #default="scope">
           <div class="flex items-center justify-end">
             <el-button
               v-if="scope.row.type !== 'button'"
-              text
+              link
               type="primary"
               @click="handleAddChild(scope.row)"
             >
               新增下级
             </el-button>
-            <el-button text type="primary" @click="handleEdit(scope.row)">
+            <el-button link type="primary" @click="handleEdit(scope.row)">
               修改
             </el-button>
-            <el-button text type="danger" @click="handleDelete(scope.row)">
+            <el-button link type="danger" @click="handleDelete(scope.row)">
               删除
             </el-button>
           </div>

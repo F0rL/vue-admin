@@ -60,9 +60,6 @@ const rules = computed((): FormRules => {
   }
 
   if (formData.type === 'menu') {
-    base.parentId = [
-      { required: true, message: '菜单必须挂载在目录下', trigger: 'change' },
-    ]
     base.path = [{ required: true, message: '请填写路由地址', trigger: 'blur' }]
     base.component = [
       { required: true, message: '请填写页面组件路径', trigger: 'blur' },

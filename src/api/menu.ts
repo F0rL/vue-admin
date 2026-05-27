@@ -69,8 +69,8 @@ export const menuApi = {
   },
 
   /** 删除菜单 */
-  delete(id: string) {
-    return http.post<null>('/menu/delete', { id })
+  delete(data: { ids: string[] }) {
+    return http.post<null>('/menu/delete', data)
   },
 
   /** 更新菜单 */
