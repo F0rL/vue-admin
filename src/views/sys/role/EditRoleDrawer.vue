@@ -54,7 +54,7 @@ const drawerTitle = computed(() =>
 const codeDisabled = computed(() => props.mode === 'edit')
 
 // 菜单树过滤
-const filterNodeMethod = (value: string, data: MenuTreeItem) => {
+const filterNodeMethod = (value: string, data: Record<string, any>) => {
   if (!value) return true
   return data.name.includes(value)
 }
